@@ -31,7 +31,7 @@ public class GameUI extends JPanel {
             e.printStackTrace();
         }
         setLayout(null);
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(900, 600));
 
 
         // Thiết lập font chữ lớn hơn
@@ -77,7 +77,7 @@ public class GameUI extends JPanel {
         exitButton.setBounds(20, 540, 150, 50); // Điều chỉnh kích thước và vị trí
         exitButton.addActionListener(e -> System.exit(0));
         add(exitButton);
-
+updateBinsDisplay();
         // Bắt đầu trò chơi
         startGame();
     }
@@ -136,8 +136,8 @@ public class GameUI extends JPanel {
         playerScoreLabel.setText("Player: " + playerScore);
     }
 
-    // Hàm di chuyển thùng rác và thay đổi thứ tự
-    public void moveBin(int direction) {
+//     Hàm di chuyển thùng rác và thay đổi thứ tự
+    public void moveBin1(int direction) {
         // Di chuyển sang trái hoặc phải
         bins[currentBinIndex].reset(); // Trở lại màu mặc định
 
@@ -152,6 +152,40 @@ public class GameUI extends JPanel {
             bins[i].setBounds((i - currentBinIndex + 2) * 150 + 100, 500, 100, 100);
         }
         bins[currentBinIndex].rotate(); // Đánh dấu thùng rác mới được chọn
+    }
+// Phần moveBin đã được chỉnh sửa
+    public void moveBin(int direction) {
+        // Hoán đổi thứ tự thùng rác
+        if (direction == -1) { // Sang trái
+            TrashBin firstBin = bins[0]; // Lưu lại thùng rác đầu tiên
+            // Dịch chuyển các thùng rác
+            for (int i = 0; i < bins.length - 1; i++) {
+                bins[i] = bins[i + 1];
+            }
+            bins[bins.length - 1] = firstBin; // Đưa thùng đầu tiên xuống cuối
+        } else if (direction == 1) { // Sang phải
+            TrashBin lastBin = bins[bins.length - 1]; // Lưu lại thùng rác cuối cùng
+            // Dịch chuyển các thùng rác
+            for (int i = bins.length - 1; i > 0; i--) {
+                bins[i] = bins[i - 1];
+            }
+            bins[0] = lastBin; // Đưa thùng cuối cùng lên đầu
+        }
+//     Đặt currentBinIndex về vị trí giữa sau khi hoán đổi
+    currentBinIndex = 1; // Đảm bảo thùng rác ở giữa (số 2) luôn là thùng được chọn
+        // Cập nhật hiển thị sau khi hoán đổi
+        updateBinsDisplay();
+    }
+
+    // Phương thức để cập nhật hiển thị của các thùng rác ở vị trí cố định
+    public void updateBinsDisplay() {
+        for (int i = 0; i < bins.length; i++) {
+            // Đặt lại vị trí cho từng thùng rác nhưng giữ nguyên các vị trí cố định
+//            bins[i].setBounds(i * 150 + 100, 500, 100, 100); // Giữ vị trí cố định
+            bins[i].setBounds((i - currentBinIndex + 2) * 150 + 100, 500, 100, 100); // Cập nhật vị trí của các thùng rác
+            bins[i].reset(); // Đặt lại màu mặc định
+        }
+        bins[1].rotate(); // Đánh dấu thùng rác mới được chọn
     }
 
     public void createAndShowUI() {
