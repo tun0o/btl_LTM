@@ -1,4 +1,4 @@
-package client;
+package client.GameUI;
 
 import javax.swing.*;
 import java.awt.*;
