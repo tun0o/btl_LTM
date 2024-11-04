@@ -1,4 +1,4 @@
-package client;
+package client.GameUI;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;

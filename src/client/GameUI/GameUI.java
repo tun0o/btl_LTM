@@ -1,10 +1,10 @@
-package  client;
+package client.GameUI;
+import client.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
@@ -22,9 +22,12 @@ public class GameUI extends JPanel {
 
 
     private Image background;
-    public GameUI() {
+    private Player currentPlayer; // Người chơi hiện tại
+    private Player opponentPlayer; // Đối thủ
 
-
+    public GameUI(Player currentPlayer, Player opponentPlayer, String serverAddress, int port) {
+        this.currentPlayer = currentPlayer;
+        this.opponentPlayer = opponentPlayer;
         try {
             background = ImageIO.read(getClass().getResource("/resources/background.png"));
         } catch (IOException e) {
@@ -38,14 +41,14 @@ public class GameUI extends JPanel {
         Font largeFont = new Font("Arial", Font.BOLD, 24);
 
         // Thông tin người chơi
-        playerScoreLabel = new JLabel("Player: 0");
+        playerScoreLabel = new JLabel(currentPlayer.getUsername() + ": " + currentPlayer.getScore());
         playerScoreLabel.setFont(largeFont); // Thiết lập font chữ lớn hơn
         playerScoreLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
         playerScoreLabel.setBounds(50, 20, 300, 50); // Điều chỉnh kích thước và vị trí
         add(playerScoreLabel);
 
         // Thông tin đối thủ
-        opponentScoreLabel = new JLabel("Opponent: 0");
+        opponentScoreLabel = new JLabel(opponentPlayer.getUsername() + ": " + opponentPlayer.getScore());
         opponentScoreLabel.setFont(largeFont); // Thiết lập font chữ lớn hơn
         opponentScoreLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
         opponentScoreLabel.setBounds(500, 20, 300, 50); // Điều chỉnh kích thước và vị trí
@@ -78,8 +81,12 @@ public class GameUI extends JPanel {
         exitButton.addActionListener(e -> System.exit(0));
         add(exitButton);
 updateBinsDisplay();
-        // Bắt đầu trò chơi
+// Khởi chạy UDPClient trên luồng riêng để nhận điểm của đối thủ từ server
+        Thread udpThread = new Thread(new UDPClient(this, serverAddress, port));
+        udpThread.start();
+// Bắt đầu trò chơi
         startGame();
+
     }
 
     @Override
@@ -124,16 +131,17 @@ updateBinsDisplay();
     }
 
     public void endGame() {
-        JOptionPane.showMessageDialog(this, "Game Over! Final Score: " + playerScore);
+        JOptionPane.showMessageDialog(this, "Game Over! Final Score: " + currentPlayer.getScore());
     }
+
 
     public void updateScore(boolean correct) {
         if (correct) {
-            playerScore++;
+            currentPlayer.addScore(1);
         } else {
-            playerScore--;
+            currentPlayer.addScore(-1);
         }
-        playerScoreLabel.setText("Player: " + playerScore);
+        playerScoreLabel.setText(currentPlayer.getUsername() + ": " + currentPlayer.getScore());
     }
 
 //     Hàm di chuyển thùng rác và thay đổi thứ tự
@@ -187,6 +195,15 @@ updateBinsDisplay();
         }
         bins[1].rotate(); // Đánh dấu thùng rác mới được chọn
     }
+
+    public void updateOpponentScore(int score) {
+        opponentPlayer.setScore(score); // Cập nhật điểm đối thủ
+        SwingUtilities.invokeLater(() -> {
+            opponentScoreLabel.setText(opponentPlayer.getUsername() + ": " + opponentPlayer.getScore());
+        });
+    }
+
+
 
     public void createAndShowUI() {
         JFrame frame = new JFrame("Trash Sorting Game");

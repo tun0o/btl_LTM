@@ -1,4 +1,4 @@
-package client;
+package client.GameUI;
 import java.awt.*;
 
 public class TrashItem {
