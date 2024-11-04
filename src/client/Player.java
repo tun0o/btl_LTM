@@ -7,11 +7,13 @@ public class Player {
     private int rank_point;
     private int noWin;
     private int score;
+    private String status;
 
     public Player(String username, String password) {
         this.username = username;
         this.password = password;
 
+        this.status = "Online";
         this.score = 0;
         this.rank_point = 0;
         this.noWin = 0;
@@ -72,5 +74,13 @@ public class Player {
 
     public void addScore(int value) {
         this.score += value;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

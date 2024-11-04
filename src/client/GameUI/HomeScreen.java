@@ -1,5 +1,7 @@
-package client;
+package client.GameUI;
 
+import client.Client;
+import client.Player;
 import database.PlayerDAO;
 
 import javax.swing.*;
