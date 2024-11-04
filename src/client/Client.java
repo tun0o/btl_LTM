@@ -14,6 +14,16 @@ public class Client {
             socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
+            sendMessage("username");
+
+            String message;
+            while ((message=in.readUTF()) != null){
+                if (message.startsWith("INVITE_TO_PLAY")){
+                    //show Dialog
+                } else if (message.startsWith("DISAGREE")){
+                    //show dialog
+                }
+            }
             System.out.println("Kết nối đến server thành công.");
         } catch (IOException e) {
             e.printStackTrace();

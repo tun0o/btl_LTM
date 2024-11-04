@@ -4,10 +4,12 @@ import java.awt.*;
 public class Player {
     private int x;
     private int score;
-    private String name;
+    private String username;
+    private String status;
 
-    public Player(String name) {
-        this.name = name;
+    public Player(String username, String status) {
+        this.username = username;
+        this.status = status;
         this.x = 200; // Vị trí ban đầu của thùng rác
         this.score = 0;
     }
@@ -28,7 +30,7 @@ public class Player {
         g.setColor(Color.BLUE);
         g.fillRect(x, 550, 100, 30); // Vẽ thùng rác
         g.setColor(Color.BLACK);
-        g.drawString(name, x + 20, 570); // Tên người chơi
+        g.drawString(username, x + 20, 570); // Tên người chơi
     }
 
     public int getX() {
@@ -43,7 +45,10 @@ public class Player {
         score += value;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
+    }
+
+    public String getStatus() { return status;
     }
 }

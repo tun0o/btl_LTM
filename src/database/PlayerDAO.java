@@ -1,8 +1,12 @@
 package database;
+import client.Player;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PlayerDAO {
     public boolean login(String username, String password) throws SQLException {
@@ -25,6 +29,22 @@ public class PlayerDAO {
 
         int rowsInserted = stmt.executeUpdate();
         return rowsInserted > 0;
+    }
+
+    public List<Player> getAllPlayers(String username) throws SQLException {
+        Connection conn = DatabaseConnection.getConnection();
+        List<Player> players = new ArrayList<>();
+        String sql = "SELECT * FROM player where username <> ? ";
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, username);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()){
+            players.add(new Player(rs.getString(1), "Offline"));
+        }
+
+        return players;
     }
 }
 
