@@ -60,7 +60,10 @@ public class Server {
                         handleAccept(message);
                     }else if (message.startsWith("SENDSCORE")) {
                         handleSendScore(message);
+                    }else if (message.startsWith("SIGNUP")) {
+                        handleSignUp(message);
                     }
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -182,12 +185,49 @@ public class Server {
                 e.printStackTrace();
             }
         }
+        private void handleSignUp(String message) {
+            try {
+                String[] parts = message.split(":");
+                if (parts.length != 3) {
+                    output.println("SIGNUP_FAILED;Invalid format");
+                    return;
+                }
 
+                String username = parts[1];
+                String password = parts[2];
+
+                // Kiểm tra đăng nhập (ví dụ với cơ sở dữ liệu hoặc danh sách hợp lệ)
+                if (isValidSignUp(username, password)) { // Giả sử có hàm isValidUser để kiểm tra
+                    this.username = username;
+                    synchronized (clients) {
+                        clients.put(username, this);
+                    }
+                    output.println("LOGIN_SUCCESS");
+                    System.out.println("SIGNUP_SUCCESS");
+                    broadcastOnlinePlayers();
+                } else {
+                    output.println("SIGNUP_FAILED;");
+                    System.out.println("SIGNUP_FAILED");
+                }
+            } catch (Exception e) {
+                output.println("LOGIN_FAILED;Error occurred");
+                e.printStackTrace();
+            }
+        }
         // Hàm giả định để kiểm tra tính hợp lệ của người dùng
         private boolean isValidUser(String username, String password) {
             PlayerDAO playerDAO = new PlayerDAO();
             try {
                 return playerDAO.login(username, password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        private boolean isValidSignUp(String username, String password) {
+            PlayerDAO playerDAO = new PlayerDAO();
+            try {
+                return playerDAO.register(username, password);
             } catch (SQLException e) {
                 e.printStackTrace();
                 return false;

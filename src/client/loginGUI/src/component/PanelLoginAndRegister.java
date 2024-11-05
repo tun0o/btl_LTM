@@ -33,8 +33,8 @@ this.client=client;
         register.add(label);
         MyTextField txtUser = new MyTextField();
 //        txtUser.setPrefixIcon(new ImageIcon(getClass().getResource("/loginGUI/src/icon/user.png")));
-        txtUser.setHint("Tên");
-        register.add(txtUser, "w 60%");
+//        txtUser.setHint("Tên");
+//        register.add(txtUser, "w 60%");
         MyTextField txtEmail = new MyTextField();
 //        txtEmail.setPrefixIcon(new ImageIcon(getClass().getResource("/loginGUI/src/icon/mail.png")));
         txtEmail.setHint("Email");
@@ -47,6 +47,20 @@ this.client=client;
         cmd.setBackground(new Color(7, 164, 121));
         cmd.setForeground(new Color(250, 250, 250));
         cmd.setText("ĐĂNG KÍ");
+        cmd.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = txtEmail.getText();
+                String password = txtPass.getText();
+                if (client != null) {
+                    System.out.println("gui dang nhap");
+                    client.sendSignUp(username, password); // Gọi trực tiếp sendLogin từ client
+                    showRegister(false); // Switch to login panel
+                } else {
+                    System.out.println("Client chưa được khởi tạo!");
+                }
+            }
+        });
         register.add(cmd, "w 40%, h 40");
     }
 

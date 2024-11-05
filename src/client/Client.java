@@ -101,6 +101,11 @@ private  String username;
         output.println("LOGIN:" + username + ":" + password);
         this.username = username;
     }
+    public void sendSignUp(String username, String password) {
+        System.out.println("SIGNUP:" + username + ":" + password);
+        output.println("SIGNUP:" + username + ":" + password);
+        this.username = username;
+    }
 
 //    public void updateScore(int score) {
 //        output.println("SCORE:" + ":" + score);

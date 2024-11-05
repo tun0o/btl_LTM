@@ -22,14 +22,26 @@ public class PlayerDAO {
 
     public boolean register(String username, String password) throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
-        String sql = "INSERT INTO player (username, password) VALUES (?, ?)";
+        String sql = "INSERT INTO player (username, password, rank_point, noWin, score, status) VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, username);
         stmt.setString(2, password);
 
+        // Set default values for rank_point, noWin, score, and status
+        int defaultRankPoint = 0;
+        int defaultNoWin = 0;
+        int defaultScore = 0;
+        String defaultStatus = "Online"; // or whatever the default status should be
+
+        stmt.setInt(3, defaultRankPoint);
+        stmt.setInt(4, defaultNoWin);
+        stmt.setInt(5, defaultScore);
+        stmt.setString(6, defaultStatus);
+
         int rowsInserted = stmt.executeUpdate();
         return rowsInserted > 0;
     }
+
 
     public List<Player> getAllPlayers() throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
