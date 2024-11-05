@@ -5,10 +5,15 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Server {
     private static final int PORT = 12345;
-
+    private static HashMap<String, SocketHandle> players = new HashMap();
+//    private static HashMap<String, SocketHandle> playingPlayers = new HashMap<>();
+    private static Matchmaking matchmaking = new Matchmaking();
 
     public static void main(String[] args) {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
@@ -17,6 +22,9 @@ public class Server {
             while (true) {
                 Socket player1Socket = serverSocket.accept();
                 System.out.println("Người chơi 1 đã kết nối.");
+
+                SocketHandle socketHandle = new SocketHandle(player1Socket, players, matchmaking);
+                new Thread(socketHandle).start();
 
                 Socket player2Socket = serverSocket.accept();
                 System.out.println("Người chơi 2 đã kết nối.");
@@ -28,6 +36,7 @@ public class Server {
             e.printStackTrace();
         }
     }
+
 }
 
 
