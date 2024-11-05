@@ -31,20 +31,30 @@ public class PlayerDAO {
         return rowsInserted > 0;
     }
 
-    public List<Player> getAllPlayers(String username) throws SQLException {
+    public List<Player> getAllPlayers() throws SQLException {
         Connection conn = DatabaseConnection.getConnection();
         List<Player> players = new ArrayList<>();
-        String sql = "SELECT * FROM player where username <> ? ";
+        // Cập nhật truy vấn để lấy thêm thông tin
+        String sql = "SELECT * FROM player ";
 
         PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, username);
+
         ResultSet rs = ps.executeQuery();
 
-        while (rs.next()){
-            players.add(new Player(rs.getString(1), "Offline"));
+        while (rs.next()) {
+            String playerUsername = rs.getString("username");
+            String playerPassword = rs.getString("password"); // Nếu cần thiết
+            int rankPoint = rs.getInt("rank_point");
+            int noWin = rs.getInt("noWin");
+            int score = rs.getInt("score");
+
+            // Tạo đối tượng Player mới với tất cả thuộc tính
+            players.add(new Player(playerUsername, playerPassword, rankPoint, noWin, score));
         }
 
+        System.out.println(players);
         return players;
     }
+
 }
 

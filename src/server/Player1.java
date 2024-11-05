@@ -2,14 +2,14 @@ package server;
 import java.io.*;
 import java.net.Socket;
 
-public class Player {
+public class Player1 {
     private String username;
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
     private double rankPoints;
 
-    public Player(Socket socket) throws IOException {
+    public Player1(Socket socket) throws IOException {
         this.socket = socket;
         this.out = new DataOutputStream(socket.getOutputStream());
         this.in = new DataInputStream(socket.getInputStream());

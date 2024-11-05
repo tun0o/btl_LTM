@@ -18,9 +18,13 @@ public class Player {
         this.rank_point = 0;
         this.noWin = 0;
     }
-
-
-
+    public Player(String username, String password, int rank_point, int noWin, int score) {
+        this.username = username;
+        this.password = password;
+        this.rank_point = rank_point;
+        this.noWin = noWin;
+        this.score = score;
+    }
     // Getter và setter cho các thuộc tính mới
     public String getUsername() {
         return username;

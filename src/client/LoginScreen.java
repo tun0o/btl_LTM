@@ -8,9 +8,9 @@ public class LoginScreen extends JFrame {
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton registerButton;
-    private Client client;
+    private Client1 client;
 
-    public LoginScreen(Client client) {
+    public LoginScreen(Client1 client) {
         this.client = client;
         setTitle("Đăng nhập / Đăng ký");
         setSize(300, 150);

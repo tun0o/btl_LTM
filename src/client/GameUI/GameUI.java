@@ -1,5 +1,8 @@
+
+
 package client.GameUI;
 import client.*;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -7,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+
 
 public class GameUI extends JPanel {
     private JLabel playerScoreLabel, opponentScoreLabel, timeLabel;
@@ -18,16 +22,21 @@ public class GameUI extends JPanel {
     private Trash trash;
     private Timer countdownTimer; // Khai báo biến ở cấp độ lớp
     private Timer gameTimer; // Khai báo biến ở cấp độ lớp
+private  Client client;
+
+
 
 
 
     private Image background;
-    private Player currentPlayer; // Người chơi hiện tại
-    private Player opponentPlayer; // Đối thủ
+    private String currentPlayer; // Người chơi hiện tại
+    private String opponentPlayer; // Đối thủ
 
-    public GameUI(Player currentPlayer, Player opponentPlayer, String serverAddress, int port) {
-        this.currentPlayer = currentPlayer;
-        this.opponentPlayer = opponentPlayer;
+
+    public GameUI(String currentPlayer, String opponentPlayer,Client client) {
+        this.currentPlayer= currentPlayer;
+        this.client = client;
+        this.opponentPlayer= opponentPlayer;
         try {
             background = ImageIO.read(getClass().getResource("/resources/background.png"));
         } catch (IOException e) {
@@ -37,22 +46,27 @@ public class GameUI extends JPanel {
         setPreferredSize(new Dimension(900, 600));
 
 
+
+
         // Thiết lập font chữ lớn hơn
         Font largeFont = new Font("Arial", Font.BOLD, 24);
 
+
         // Thông tin người chơi
-        playerScoreLabel = new JLabel(currentPlayer.getUsername() + ": " + currentPlayer.getScore());
+        playerScoreLabel = new JLabel(currentPlayer+ ": " + playerScore);
         playerScoreLabel.setFont(largeFont); // Thiết lập font chữ lớn hơn
         playerScoreLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
         playerScoreLabel.setBounds(50, 20, 300, 50); // Điều chỉnh kích thước và vị trí
         add(playerScoreLabel);
 
+
         // Thông tin đối thủ
-        opponentScoreLabel = new JLabel(opponentPlayer.getUsername() + ": " + opponentPlayer.getScore());
+        opponentScoreLabel = new JLabel(opponentPlayer+ ": " + opponentScore);
         opponentScoreLabel.setFont(largeFont); // Thiết lập font chữ lớn hơn
         opponentScoreLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
         opponentScoreLabel.setBounds(500, 20, 300, 50); // Điều chỉnh kích thước và vị trí
         add(opponentScoreLabel);
+
 
         // Thời gian
         timeLabel = new JLabel("Time: 60s");
@@ -60,6 +74,7 @@ public class GameUI extends JPanel {
         timeLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
         timeLabel.setBounds(350, 20, 200, 50); // Điều chỉnh kích thước và vị trí
         add(timeLabel);
+
 
         // Tạo 4 thùng rác với các loại và tên khác nhau
         String[] types = {"paper", "plastic", "metal", "organic"};
@@ -69,9 +84,11 @@ public class GameUI extends JPanel {
             add(bins[i]);
         }
 
+
         // Khởi tạo rác
         trash = new Trash();
         add(trash);
+
 
         // Nút thoát
         JButton exitButton = new JButton("Exit");
@@ -80,14 +97,14 @@ public class GameUI extends JPanel {
         exitButton.setBounds(20, 540, 150, 50); // Điều chỉnh kích thước và vị trí
         exitButton.addActionListener(e -> System.exit(0));
         add(exitButton);
-updateBinsDisplay();
-// Khởi chạy UDPClient trên luồng riêng để nhận điểm của đối thủ từ server
-        Thread udpThread = new Thread(new UDPClient(this, serverAddress, port));
-        udpThread.start();
+        updateBinsDisplay();
+
 // Bắt đầu trò chơi
         startGame();
 
+
     }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -97,6 +114,7 @@ updateBinsDisplay();
         }
     }
 //  tat de sua trash
+
 
     public void startGame() {
         // Timer để điều khiển rơi của rác
@@ -114,6 +132,7 @@ updateBinsDisplay();
         });
         gameTimer.start();
 
+
         // Timer để giảm thời gian còn lại
         countdownTimer = new Timer(1000, new ActionListener() {
             @Override
@@ -130,24 +149,30 @@ updateBinsDisplay();
         countdownTimer.start();
     }
 
+
     public void endGame() {
-        JOptionPane.showMessageDialog(this, "Game Over! Final Score: " + currentPlayer.getScore());
+        JOptionPane.showMessageDialog(this, "Game Over! Final Score: " + playerScore);
     }
+
+
 
 
     public void updateScore(boolean correct) {
         if (correct) {
-            currentPlayer.addScore(1);
+            ++playerScore;
         } else {
-            currentPlayer.addScore(-1);
+            --playerScore;
         }
-        playerScoreLabel.setText(currentPlayer.getUsername() + ": " + currentPlayer.getScore());
+        client.sendScore(playerScore,this.currentPlayer,this.opponentPlayer);
+        playerScoreLabel.setText(currentPlayer + ": " + playerScore);
     }
 
-//     Hàm di chuyển thùng rác và thay đổi thứ tự
+
+    //     Hàm di chuyển thùng rác và thay đổi thứ tự
     public void moveBin1(int direction) {
         // Di chuyển sang trái hoặc phải
         bins[currentBinIndex].reset(); // Trở lại màu mặc định
+
 
         if (direction == -1) { // Sang trái
             currentBinIndex = (currentBinIndex - 1 + bins.length) % bins.length;
@@ -155,13 +180,14 @@ updateBinsDisplay();
             currentBinIndex = (currentBinIndex + 1) % bins.length;
         }
 
+
         // Đặt thùng hiện tại về giữa
         for (int i = 0; i < bins.length; i++) {
             bins[i].setBounds((i - currentBinIndex + 2) * 150 + 100, 500, 100, 100);
         }
         bins[currentBinIndex].rotate(); // Đánh dấu thùng rác mới được chọn
     }
-// Phần moveBin đã được chỉnh sửa
+    // Phần moveBin đã được chỉnh sửa
     public void moveBin(int direction) {
         // Hoán đổi thứ tự thùng rác
         if (direction == -1) { // Sang trái
@@ -180,10 +206,11 @@ updateBinsDisplay();
             bins[0] = lastBin; // Đưa thùng cuối cùng lên đầu
         }
 //     Đặt currentBinIndex về vị trí giữa sau khi hoán đổi
-    currentBinIndex = 1; // Đảm bảo thùng rác ở giữa (số 2) luôn là thùng được chọn
+        currentBinIndex = 1; // Đảm bảo thùng rác ở giữa (số 2) luôn là thùng được chọn
         // Cập nhật hiển thị sau khi hoán đổi
         updateBinsDisplay();
     }
+
 
     // Phương thức để cập nhật hiển thị của các thùng rác ở vị trí cố định
     public void updateBinsDisplay() {
@@ -196,12 +223,16 @@ updateBinsDisplay();
         bins[1].rotate(); // Đánh dấu thùng rác mới được chọn
     }
 
-    public void updateOpponentScore(int score) {
-        opponentPlayer.setScore(score); // Cập nhật điểm đối thủ
+
+    public void updateOpponentScore(String score) {
+        this.opponentScore =Integer.parseInt(score); // Cập nhật điểm đối thủ
         SwingUtilities.invokeLater(() -> {
-            opponentScoreLabel.setText(opponentPlayer.getUsername() + ": " + opponentPlayer.getScore());
+            opponentScoreLabel.setText(opponentPlayer + ": " + this.opponentScore);
         });
     }
+
+
+
 
 
 
@@ -212,6 +243,7 @@ updateBinsDisplay();
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
 
         frame.addKeyListener(new GameController(this));
         frame.setFocusable(true);

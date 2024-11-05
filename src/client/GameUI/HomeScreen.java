@@ -1,6 +1,7 @@
 package client.GameUI;
 
 import client.Client;
+import client.Client1;
 import client.Player;
 import database.PlayerDAO;
 
@@ -9,16 +10,26 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HomeScreen extends JFrame {
     private static String username;    // Tên người chơi hiện tại
     private int highScore;      // Kỷ lục của người chơi hiện tại
     private JPanel playerListPanel;
-
-    public HomeScreen(String username, int highScore, List<Player> players) {
+    private List<Player> players;
+    private static String onlinePlayers;
+    private static String allPlayers;
+    public Client client;
+    public HomeScreen(String username, String onlinePlayers,String allPlayers,Client client) {
         this.username = username;
-        this.highScore = highScore;
+        this.client = client;
+        this.onlinePlayers =onlinePlayers;
+        this.allPlayers = allPlayers;
+        this.highScore = 123;
+        client.setHomeScreen(this);
         setTitle("Trang chủ");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,7 +71,7 @@ public class HomeScreen extends JFrame {
         playerGbc.fill = GridBagConstraints.HORIZONTAL;
         playerGbc.insets = new Insets(5, 5, 5, 5);
 
-        loadPlayerList(players);
+        loadPlayerList(this.onlinePlayers,this.allPlayers);
 
         JScrollPane scrollPane = new JScrollPane(playerListPanel);
         scrollPane.setPreferredSize(new Dimension(400, 500));
@@ -74,7 +85,7 @@ public class HomeScreen extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Gọi hàm tìm trận ngẫu nhiên
-                startRandomMatch();
+                client.findRandomMatch();
             }
         });
 
@@ -88,9 +99,32 @@ public class HomeScreen extends JFrame {
 
         setVisible(true);
     }
+    public void showMatchInviteDialog(String type,String inviter) {
+        int response = JOptionPane.NO_OPTION;
+//        SwingUtilities.invokeLater(() -> {
+            if (type.equals("random")) {
+                response = JOptionPane.showOptionDialog(
+                        this,
+                        inviter + " has invited you to a match.",
+                        "Match Found",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        new Object[]{"Accept", "Decline"},
+                        "Accept"
+                );
+            }
 
+
+            if (response == JOptionPane.YES_OPTION) {
+                client.accept(this.username);  // Example method to send acceptance
+            } else {
+                client.decline(this.username); // Send decline
+            }
+//        });
+    }
     // Hiển thị danh sách người chơi
-    private void loadPlayerList(List<Player> players) {
+    private void loadPlayerList1(List<Player> players) {
         playerListPanel.removeAll();
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -143,10 +177,73 @@ public class HomeScreen extends JFrame {
         playerListPanel.revalidate();
         playerListPanel.repaint();
     }
+    // Hiển thị danh sách người chơi
+    private void loadPlayerList(String onlinePlayers, String allPlayers) {
+        playerListPanel.removeAll();
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Header row
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        JLabel headerName = new JLabel("Người chơi");
+        headerName.setFont(new Font("Arial", Font.BOLD, 14));
+        playerListPanel.add(headerName, gbc);
+
+        gbc.gridx = 1;
+        JLabel headerStatus = new JLabel("Trạng thái");
+        headerStatus.setFont(new Font("Arial", Font.BOLD, 14));
+        playerListPanel.add(headerStatus, gbc);
+
+        gbc.gridx = 2;
+        JLabel headerAction = new JLabel("");
+        playerListPanel.add(headerAction, gbc);
+
+        // Phân tích onlinePlayers
+        Set<String> onlineSet = new HashSet<>(Arrays.asList(onlinePlayers.split(",")));
+
+        // Phân tích allPlayers
+        String[] allPlayersArray = allPlayers.split(";");
+        int row = 1;
+        for (String playerData : allPlayersArray) {
+            String[] playerInfo = playerData.split(":");
+            if (playerInfo.length < 4) continue; // Đảm bảo có đủ thông tin
+
+            String playerUsername = playerInfo[0];
+            String status = onlineSet.contains(playerUsername) ? "Online" : "Offline";
+
+            gbc.gridx = 0;
+            gbc.gridy = row;
+            JLabel nameLabel = new JLabel(playerUsername);
+            nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            playerListPanel.add(nameLabel, gbc);
+
+            gbc.gridx = 1;
+            JLabel statusLabel = new JLabel(status);
+            statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            playerListPanel.add(statusLabel, gbc);
+
+            gbc.gridx = 2;
+            if (status.equals("Online")) {
+                JButton inviteButton = new JButton("Mời");
+                inviteButton.setFont(new Font("Arial", Font.PLAIN, 12));
+                inviteButton.setPreferredSize(new Dimension(60, 30));
+                inviteButton.addActionListener(e -> invitePlayer(playerUsername));
+                playerListPanel.add(inviteButton, gbc);
+            } else {
+                playerListPanel.add(new JLabel(""), gbc); // Không có nút "Mời" cho người chơi offline
+            }
+
+            row++;
+        }
+        playerListPanel.revalidate();
+        playerListPanel.repaint();
+    }
     private void startRandomMatch() {
         // Logic tìm trận ngẫu nhiên
-        Client client = new Client();
+        Client1 client = new Client1();
         client.sendMessage("RANDOM_MATCH");
         JOptionPane.showMessageDialog(this, "Tìm trận ngẫu nhiên...");
     }
@@ -157,16 +254,14 @@ public class HomeScreen extends JFrame {
     }
 
     private void invitePlayer(String username) {
-        // Gửi lời mời chơi đến người chơi khác
-        Client client = new Client();
-        client.sendMessage("INVITE_TO_PLAY;"+username);
+
+        client.sendInvite(username);
+        client.accept(this.username);
         JOptionPane.showMessageDialog(this, "Đã gửi lời mời đến " + username);
     }
 
     public static void main(String[] args) throws SQLException {
-        // Ví dụ dữ liệu truy vấn từ database
-        List<Player> players = new PlayerDAO().getAllPlayers(username);
-
-        new HomeScreen("Người chơi 1", 100, players);
+        String username  = "Người chơi 1";
+//        new HomeScreen(username, "","");
     }
 }
