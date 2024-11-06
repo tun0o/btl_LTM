@@ -173,9 +173,10 @@ public class Server {
                     synchronized (clients) {
                         clients.put(username, this);
                     }
+                    broadcastOnlinePlayers();
                     output.println("LOGIN_SUCCESS");
                     System.out.println("LOGIN_SUCCESS");
-                    broadcastOnlinePlayers();
+
                 } else {
                     output.println("LOGIN_FAILED;Incorrect username or password");
                     System.out.println("LOGIN_FAILED");
@@ -202,9 +203,10 @@ public class Server {
                     synchronized (clients) {
                         clients.put(username, this);
                     }
+                    broadcastOnlinePlayers();
                     output.println("LOGIN_SUCCESS");
                     System.out.println("SIGNUP_SUCCESS");
-                    broadcastOnlinePlayers();
+
                 } else {
                     output.println("SIGNUP_FAILED;");
                     System.out.println("SIGNUP_FAILED");

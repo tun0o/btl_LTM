@@ -178,7 +178,7 @@ public class HomeScreen extends JFrame {
         playerListPanel.repaint();
     }
     // Hiển thị danh sách người chơi
-    private void loadPlayerList(String onlinePlayers, String allPlayers) {
+    public void loadPlayerList(String onlinePlayers, String allPlayers) {
         playerListPanel.removeAll();
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -213,6 +213,8 @@ public class HomeScreen extends JFrame {
 
             String playerUsername = playerInfo[0];
             String status = onlineSet.contains(playerUsername) ? "Online" : "Offline";
+
+            if(playerUsername.equals(this.username)) continue;
 
             gbc.gridx = 0;
             gbc.gridy = row;

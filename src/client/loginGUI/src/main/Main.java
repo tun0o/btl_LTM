@@ -31,6 +31,7 @@ public class Main extends javax.swing.JFrame {
 
         client = new Client("localhost", 12345); // Khởi tạo client khi giao diện mở
         init(client);
+        client.setLoginGUI(this);
     }
 
     private void init( Client client) {

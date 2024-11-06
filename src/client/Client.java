@@ -68,6 +68,9 @@ private  String username;
         if (players.length == 2) {
             String currentPlayer = players[0];
             String opponentPlayer = players[1];
+            if (homeScreen != null) {
+                homeScreen.setVisible(false);
+            }
 
             // Create and display the GameUI
 //            SwingUtilities.invokeLater(() -> {
@@ -114,6 +117,10 @@ private  String username;
     private void updateOnlinePlayers(String players) {
         this.onlinePlayers = players;// Cập nhật danh sách online trên giao diện
         System.out.println("Online players: " + onlinePlayers);
+        if(homeScreen!=null){
+            homeScreen.loadPlayerList(onlinePlayers,allPlayers);
+        }
+
     }
     private void updateAllPlayers(String players) {
         this.allPlayers = players;// Cập nhật danh sách online trên giao diện
@@ -140,7 +147,9 @@ private  String username;
             if (loginGUI != null) {
                 loginGUI.setVisible(false); // Ẩn giao diện đăng nhập
             }
+
             new HomeScreen(this.username, onlinePlayers,allPlayers,this); // Mở giao diện HomeScreen
+            homeScreen.loadPlayerList(onlinePlayers,allPlayers);
         });
     }
 
