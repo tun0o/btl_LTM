@@ -23,6 +23,7 @@ public class HomeScreen extends JFrame {
     private static String onlinePlayers;
     private static String allPlayers;
     public Client client;
+
     public HomeScreen(String username, String onlinePlayers,String allPlayers,Client client) {
         this.username = username;
         this.client = client;
@@ -30,55 +31,76 @@ public class HomeScreen extends JFrame {
         this.allPlayers = allPlayers;
         this.highScore = 123;
         client.setHomeScreen(this);
+
         setTitle("Trang chủ");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
+
+        JPanel backgroundPanel = new JPanel(){
+            @Override
+            protected void paintComponent(Graphics g){
+                super.paintComponent(g);
+                ImageIcon backroundIcon = new ImageIcon("resources/background.png");
+                g.drawImage(backroundIcon.getImage(), 0, 0, getWidth(), getHeight(), this);
+            }
+        };
+        backgroundPanel.setLayout(new BorderLayout());
+        backgroundPanel.setOpaque(false);
+        add(backgroundPanel);
 
         // Panel thông tin người chơi hiện tại
         JPanel currentUserPanel = new JPanel();
         currentUserPanel.setLayout(new BoxLayout(currentUserPanel, BoxLayout.Y_AXIS));
+        currentUserPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         JLabel userInfoLabel = new JLabel("<html><div style='text-align: center;'><b>" + username + "</b><br>Kỷ lục: " + highScore + "</div></html>");
         userInfoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         userInfoLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        userInfoLabel.setForeground(Color.BLACK);
         currentUserPanel.add(userInfoLabel);
-        currentUserPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        currentUserPanel.add(Box.createRigidArea(new Dimension(0, 50)));
 
         // Nút ghép ngẫu nhiên và bảng xếp hạng
         JButton randomMatchButton = new JButton("Ghép ngẫu nhiên");
         JButton leaderboardButton = new JButton("Bảng xếp hạng");
-        randomMatchButton.setPreferredSize(new Dimension(200, 50));
-        leaderboardButton.setPreferredSize(new Dimension(200, 50));
+
+        randomMatchButton.setPreferredSize(new Dimension(220, 60));
+        leaderboardButton.setPreferredSize(new Dimension(220, 60));
+        randomMatchButton.setFont(new Font("Arial", Font.BOLD, 16));
+        leaderboardButton.setFont(new Font("Arial", Font.BOLD, 16));
         randomMatchButton.setBackground(Color.YELLOW);
         leaderboardButton.setBackground(Color.YELLOW);
-        randomMatchButton.setFont(new Font("Arial", Font.BOLD, 14));
-        leaderboardButton.setFont(new Font("Arial", Font.BOLD, 14));
 
         currentUserPanel.add(randomMatchButton);
-        currentUserPanel.add(Box.createRigidArea(new Dimension(0, 10)));  // Khoảng cách giữa các nút
+        currentUserPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         currentUserPanel.add(leaderboardButton);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);  // Khoảng cách
-        add(currentUserPanel, gbc);
+        add(currentUserPanel,BorderLayout.WEST);
 
         // Panel danh sách người chơi
         playerListPanel = new JPanel();
         playerListPanel.setLayout(new GridBagLayout());
-        GridBagConstraints playerGbc = new GridBagConstraints();
-        playerGbc.fill = GridBagConstraints.HORIZONTAL;
-        playerGbc.insets = new Insets(5, 5, 5, 5);
+        JPanel playerListContainer = new JPanel(new BorderLayout());
 
-        loadPlayerList(this.onlinePlayers,this.allPlayers);
+        JPanel headerPanel = new JPanel(new GridLayout(1, 3));
+        JLabel headerName = new JLabel("Người chơi", SwingConstants.CENTER);
+        headerName.setFont(new Font("Arial", Font.BOLD, 14));
+        JLabel headerStatus = new JLabel("Trạng thái", SwingConstants.CENTER);
+        headerStatus.setFont(new Font("Arial", Font.BOLD, 14));
+        JLabel headerAction = new JLabel("", SwingConstants.CENTER);
 
-        JScrollPane scrollPane = new JScrollPane(playerListPanel);
-        scrollPane.setPreferredSize(new Dimension(400, 500));
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.insets = new Insets(10, 10, 10, 10);
-        add(scrollPane, gbc);
+        headerPanel.add(headerName);
+        headerPanel.add(headerStatus);
+        headerPanel.add(headerAction);
+
+        playerListContainer.add(headerPanel, BorderLayout.NORTH);
+        playerListContainer.add(new JScrollPane(playerListPanel), BorderLayout.CENTER);
+
+        loadPlayerList(this.onlinePlayers, this.allPlayers);
+
+        add(playerListContainer, BorderLayout.CENTER);
 
         // Sự kiện cho các nút
         randomMatchButton.addActionListener(new ActionListener() {
@@ -99,6 +121,7 @@ public class HomeScreen extends JFrame {
 
         setVisible(true);
     }
+
     public void showMatchInviteDialog(String type,String inviter) {
         int response = JOptionPane.NO_OPTION;
 //        SwingUtilities.invokeLater(() -> {
@@ -186,27 +209,27 @@ public class HomeScreen extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
 
         // Header row
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        JLabel headerName = new JLabel("Người chơi");
-        headerName.setFont(new Font("Arial", Font.BOLD, 14));
-        playerListPanel.add(headerName, gbc);
-
-        gbc.gridx = 1;
-        JLabel headerStatus = new JLabel("Trạng thái");
-        headerStatus.setFont(new Font("Arial", Font.BOLD, 14));
-        playerListPanel.add(headerStatus, gbc);
-
-        gbc.gridx = 2;
-        JLabel headerAction = new JLabel("");
-        playerListPanel.add(headerAction, gbc);
+//        gbc.gridx = 0;
+//        gbc.gridy = 0;
+//        JLabel headerName = new JLabel("Người chơi");
+//        headerName.setFont(new Font("Arial", Font.BOLD, 14));
+//        playerListPanel.add(headerName, gbc);
+//
+//        gbc.gridx = 1;
+//        JLabel headerStatus = new JLabel("Trạng thái");
+//        headerStatus.setFont(new Font("Arial", Font.BOLD, 14));
+//        playerListPanel.add(headerStatus, gbc);
+//
+//        gbc.gridx = 2;
+//        JLabel headerAction = new JLabel("");
+//        playerListPanel.add(headerAction, gbc);
 
         // Phân tích onlinePlayers
         Set<String> onlineSet = new HashSet<>(Arrays.asList(onlinePlayers.split(",")));
 
         // Phân tích allPlayers
         String[] allPlayersArray = allPlayers.split(";");
-        int row = 1;
+        int row = 0;
         for (String playerData : allPlayersArray) {
             String[] playerInfo = playerData.split(":");
             if (playerInfo.length < 4) continue; // Đảm bảo có đủ thông tin
@@ -219,13 +242,13 @@ public class HomeScreen extends JFrame {
             gbc.gridx = 0;
             gbc.gridy = row;
             JLabel nameLabel = new JLabel(playerUsername);
-            nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            playerListPanel.add(nameLabel, gbc);
+            //nameLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            playerListPanel.add(new JLabel(playerUsername, SwingConstants.CENTER), gbc);
 
             gbc.gridx = 1;
-            JLabel statusLabel = new JLabel(status);
-            statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            playerListPanel.add(statusLabel, gbc);
+            //JLabel statusLabel = new JLabel(status);
+            //statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            playerListPanel.add(new JLabel(status, SwingConstants.CENTER), gbc);
 
             gbc.gridx = 2;
             if (status.equals("Online")) {
@@ -264,6 +287,6 @@ public class HomeScreen extends JFrame {
 
     public static void main(String[] args) throws SQLException {
         String username  = "Người chơi 1";
-//        new HomeScreen(username, "","");
+//        new HomeScreen(username, "player1,player2","player1:info;player2:info", new Client("localhost", 12345));
     }
 }
