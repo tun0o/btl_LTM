@@ -1,6 +1,9 @@
-package client.GameUI;
-
 import javax.swing.*;
+
+import client.Client;
+import client.GameUI.GameUI;
+import client.GameUI.HomeScreen;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,8 +17,10 @@ public class MatchResult extends JPanel {
     private JLabel resultNotificationLabel;
     private JButton rematchButton;
     private JButton leaveRoomButton;
+    private Client client;
 
-    public MatchResult(String player1Name, String player2Name, int player1Score, int player2Score) {
+    public MatchResult(String player1Name, String player2Name, int player1Score, int player2Score, Client client) {
+        this.client = client;
         setLayout(null);
         setPreferredSize(new Dimension(600, 400));
 
@@ -35,8 +40,7 @@ public class MatchResult extends JPanel {
         add(player2NameLabel);
 
         // Set up label for score difference
-        int scoreDifference = Math.abs(player1Score - player2Score);
-        scoreDifferenceLabel = new JLabel("Hiệu số: " + scoreDifference);
+        scoreDifferenceLabel = new JLabel("Hiệu số: " + player1Score + " - " + player2Score);
         scoreDifferenceLabel.setHorizontalAlignment(SwingConstants.CENTER);
         scoreDifferenceLabel.setBounds(240, 20, 100, 50);
         add(scoreDifferenceLabel);
@@ -58,7 +62,6 @@ public class MatchResult extends JPanel {
         rematchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Notify the opponent about rematch
                 int response = JOptionPane.showOptionDialog(null,
                         "Đối thủ của bạn muốn đấu lại. Bạn có muốn tham gia?",
                         "Xác nhận đấu lại",
@@ -67,17 +70,19 @@ public class MatchResult extends JPanel {
                         null,
                         new Object[]{"Có", "Không"},
                         "Có");
-
+        
+                sendMatchResult(player1Name, player2Name, player1Score, player2Score);
+        
                 if (response == JOptionPane.YES_OPTION) {
-                    // Start a new match
                     JOptionPane.showMessageDialog(null, "Trận đấu mới bắt đầu!");
-                    // Send data to the server to update database
-                    sendMatchResult(player1Score, player2Score);
+                    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(MatchResult.this);
+                    frame.getContentPane().removeAll();
+                    frame.add(new GameUI(player1Name, player2Name, client));
+                    frame.revalidate();
+                    frame.repaint();
                 } else {
-                    // Return to homepage
                     JOptionPane.showMessageDialog(null, "Đưa bạn về trang chủ...");
-                    // Send data to the server to update database
-                    sendMatchResult(player1Score, player2Score);
+                    openHomeScreen();
                 }
             }
         });
@@ -91,11 +96,32 @@ public class MatchResult extends JPanel {
         leaveRoomButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Handle leaving room logic
                 JOptionPane.showMessageDialog(null, "Rời phòng...");
+                sendMatchResult(player1Name, player2Name, player1Score, player2Score);
+                openHomeScreen();
             }
         });
         add(leaveRoomButton);
+    }
+
+    private void openHomeScreen() {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        frame.getContentPane().removeAll();
+        frame.add(new HomeScreen(client.getUsername(), client.getOnlinePlayers(), client.getAllPlayers(), client));
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void sendMatchResult(String player1Name, String player2Name, int player1Score, int player2Score) {
+        try (Socket socket = new Socket("localhost", 12345)) {
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            String result = player1Score > player2Score ? "win" : (player1Score < player2Score ? "lose" : "draw");
+            // Send the match result along with player names to the server
+            out.println(player1Name + "," + player2Name + "," + result);
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error sending result to the server.");
+        }
     }
 
     public void createAndShowUI() {
@@ -106,23 +132,15 @@ public class MatchResult extends JPanel {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
-
-    private void sendMatchResult(int player1Score, int player2Score) {
-        try (Socket socket = new Socket("localhost", 12345)) {
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            String result = player1Score > player2Score ? "win" : (player1Score < player2Score ? "lose" : "draw");
-            // Send the match result to the server (win/lose/draw)
-            out.println(result); 
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error sending result to the server.");
-        }
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            MatchResult matchResultUI = new MatchResult("Player 1", "Player 2", 5, 3);
-            matchResultUI.createAndShowUI();
-        });
-    }
 }
+
+
+//Theêm vaào File GameUI.java vaà xoaá hamàm main file nayày
+
+//public void endGame() {
+//     JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+//     frame.getContentPane().removeAll();
+//     frame.add(new MatchResult(currentPlayer, opponentPlayer, playerScore, opponentScore, client));
+//     frame.revalidate();
+//     frame.repaint();
+// }
