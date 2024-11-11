@@ -37,7 +37,7 @@ this.client=client;
 //        register.add(txtUser, "w 60%");
         MyTextField txtEmail = new MyTextField();
 //        txtEmail.setPrefixIcon(new ImageIcon(getClass().getResource("/loginGUI/src/icon/mail.png")));
-        txtEmail.setHint("Email");
+        txtEmail.setHint("Username");
         register.add(txtEmail, "w 60%");
         MyPasswordField txtPass = new MyPasswordField();
 //        txtPass.setPrefixIcon(new ImageIcon(getClass().getResource("/loginGUI/src/icon/pass.png")));
@@ -53,7 +53,7 @@ this.client=client;
                 String username = txtEmail.getText();
                 String password = txtPass.getText();
                 if (client != null) {
-                    System.out.println("gui dang nhap");
+                    System.out.println("gui dang ky");
                     client.sendSignUp(username, password); // Gọi trực tiếp sendLogin từ client
                     showRegister(false); // Switch to login panel
                 } else {
@@ -72,7 +72,7 @@ this.client=client;
         login.add(label);
         MyTextField txtEmail = new MyTextField();
 //        txtEmail.setPrefixIcon(new ImageIcon(getClass().getResource("/icon/mail.png")));
-        txtEmail.setHint("Email");
+        txtEmail.setHint("Username");
         login.add(txtEmail, "w 60%");
         MyPasswordField txtPass = new MyPasswordField();
 //        txtPass.setPrefixIcon(new ImageIcon(getClass().getResource("/icon/pass.png")));
