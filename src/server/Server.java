@@ -15,7 +15,9 @@ public class Server {
     private static List<String> acceptedPlayers = new ArrayList<>(); // List for players who accepted a match
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+//        try (ServerSocket serverSocket = new ServerSocket(PORT,50, InetAddress.getByName("0.0.0.0"))) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT, 50, InetAddress.getLocalHost())) {
+
             System.out.println("Server is running on port " + PORT);
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -25,6 +27,19 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     static class ClientHandler implements Runnable {
@@ -45,12 +60,13 @@ public class Server {
 
 
 
+
                 // Lắng nghe các yêu cầu khác từ client
                 String message;
                 while ((message = input.readLine()) != null) {
                     if (message.startsWith("LOGIN")) {
                         handleLogin(message);
-                    } else if (message.startsWith("INVITE")) {
+                    } else if (message.startsWith("1INVITE")) {
                         handleInvite(message);
                     } else if (message.startsWith("SCORE")) {
                         handleScoreUpdate(message);
@@ -62,6 +78,14 @@ public class Server {
                         handleSendScore(message);
                     }else if (message.startsWith("SIGNUP")) {
                         handleSignUp(message);
+                    }else if (message.startsWith("REMATCH")) {
+                        handleRematch(message);
+                    }
+                    else if (message.startsWith("MATCHINFO")) {
+                        handleAddMatchInfo(message);
+                    }
+                    else if (message.startsWith("SURRENDER")) {
+                        handleSurrender(message);
                     }
 
                 }
@@ -80,6 +104,7 @@ public class Server {
                 }
             }
         }
+
         private void handleSendScore(String message) {
             // Parse the message to get score, sender, and receiver usernames
             String[] parts = message.split(":");
@@ -127,6 +152,20 @@ public class Server {
                 }
             }
         }
+        private void handleAddMatchInfo(String message) {
+            // Extract the username from the message
+            String[] parts = message.split(":");
+            if (parts.length < 2) return; // Validate message format
+            String matchInfo = parts[1];
+            try {
+                playerDAO.addMatch(matchInfo);
+                playerDAO.updatePlayerScores(matchInfo);
+            } catch (SQLException e) {
+                e.printStackTrace();
+
+            }
+
+        }
         private void handleRandomMatch(String message) {
             // Extract the username from the message
             String[] parts = message.split(":");
@@ -173,9 +212,10 @@ public class Server {
                     synchronized (clients) {
                         clients.put(username, this);
                     }
+                    broadcastOnlinePlayers();
                     output.println("LOGIN_SUCCESS");
                     System.out.println("LOGIN_SUCCESS");
-                    broadcastOnlinePlayers();
+
                 } else {
                     output.println("LOGIN_FAILED;Incorrect username or password");
                     System.out.println("LOGIN_FAILED");
@@ -202,9 +242,10 @@ public class Server {
                     synchronized (clients) {
                         clients.put(username, this);
                     }
+                    broadcastOnlinePlayers();
                     output.println("LOGIN_SUCCESS");
                     System.out.println("SIGNUP_SUCCESS");
-                    broadcastOnlinePlayers();
+
                 } else {
                     output.println("SIGNUP_FAILED;");
                     System.out.println("SIGNUP_FAILED");
@@ -278,6 +319,21 @@ public class Server {
             String opponent = parts[1];
             if (clients.containsKey(opponent)) {
                 clients.get(opponent).output.println("INVITERANDOMMATCH:" + username);
+            }
+        }
+        private void handleSurrender(String message) {
+            String[] parts = message.split(":");
+            String opponent = parts[3];
+            if (clients.containsKey(opponent)) {
+                clients.get(opponent).output.println("OPPONENTSUR:" + message.substring(10));
+            }
+        }
+        private void handleRematch(String message) {
+            String[] parts = message.split(":");
+            String opponent = parts[1];
+            if (clients.containsKey(opponent)) {
+                clients.get(opponent).output.println("INVITEREMATCH:" + username);
+                System.out.println("INVITEREMATCH:" + username);
             }
         }
 
