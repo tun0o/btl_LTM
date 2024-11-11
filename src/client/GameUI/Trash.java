@@ -6,14 +6,15 @@ import java.io.File;
 import java.util.Random;
 import java.net.URL; // Thêm dòng này
 
+//private static int globalSpeed = 10; // Tốc độ gốc cho vật phẩm đầu tiên
 
 public class Trash extends JLabel {
     private int yPosition;
-    private int speed;
+    private float speed;
     private String type;
     private String name;
     private Random random = new Random();
-    private int initialSpeed = 10; // Tốc độ rơi ban đầu
+    public static float initialSpeed = 5; // Tốc độ rơi ban đầu
 
     // Đường dẫn đến các thư mục chứa ảnh
     private static final String IMAGE_PATH_PLASTIC = "/resources/plastic";
@@ -34,14 +35,17 @@ public class Trash extends JLabel {
         yPosition = 0;
         setLocation(375, yPosition); // Giữ rác ở giữa màn hình
         speed = initialSpeed; // Đặt tốc độ ban đầu
+        initialSpeed+=0.5f;
         type = generateRandomType(); // Tạo loại rác ngẫu nhiên
         name = generateRandomName(type); // Tạo tên cho loại rác
         setIcon(generateRandomImage(type)); // Đặt ảnh ngẫu nhiên cho loại rác
+
     }
 
     public void moveDown(int timeElapsed) {
         // Tăng tốc độ theo thời gian đã trôi qua
-        speed = initialSpeed + timeElapsed / 10; // Tăng tốc độ theo thời gian
+//        speed = initialSpeed + timeElapsed / 10; // Tăng tốc độ theo thời gian
+        speed = initialSpeed;
         yPosition += speed;
         setLocation(getX(), yPosition);
     }

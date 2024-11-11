@@ -28,8 +28,8 @@ public class Main extends javax.swing.JFrame {
 
     public Main() {
         initComponents();
-
-        client = new Client("localhost", 12345); // Khởi tạo client khi giao diện mở
+        String serverAdress = "26.130.249.14";
+        client = new Client(serverAdress, 12345); // Khởi tạo client khi giao diện mở
         init(client);
         client.setLoginGUI(this);
     }

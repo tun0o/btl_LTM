@@ -2,6 +2,7 @@
 
 package client.GameUI;
 import client.*;
+import client.LeaderBoard_Rematch.MatchResult;
 
 
 import javax.swing.*;
@@ -10,13 +11,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import javax.swing.border.AbstractBorder;
 
 
 public class GameUI extends JPanel {
     private JLabel playerScoreLabel, opponentScoreLabel, timeLabel;
     private int playerScore = 0;
     private int opponentScore = 0;
-    private int timeRemaining = 60;
+    private int timeRemaining = 3;
     private TrashBin[] bins = new TrashBin[4];
     public int currentBinIndex = 1; // Thùng ở giữa (nhựa) bắt đầu là chỉ số 1
     private Trash trash;
@@ -64,7 +66,7 @@ private  Client client;
         opponentScoreLabel = new JLabel(opponentPlayer+ ": " + opponentScore);
         opponentScoreLabel.setFont(largeFont); // Thiết lập font chữ lớn hơn
         opponentScoreLabel.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
-        opponentScoreLabel.setBounds(500, 20, 300, 50); // Điều chỉnh kích thước và vị trí
+        opponentScoreLabel.setBounds(650, 20, 300, 50); // Điều chỉnh kích thước và vị trí
         add(opponentScoreLabel);
 
 
@@ -91,11 +93,23 @@ private  Client client;
 
 
         // Nút thoát
+//        JButton exitButton = new JButton("Exit");
+//        exitButton.setFont(largeFont); // Thiết lập font chữ lớn hơn
+//        exitButton.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
+//        exitButton.setBounds(20, 540, 150, 50); // Điều chỉnh kích thước và vị trí
+//        exitButton.addActionListener(e -> System.exit(0));
+//        add(exitButton);
         JButton exitButton = new JButton("Exit");
         exitButton.setFont(largeFont); // Thiết lập font chữ lớn hơn
         exitButton.setForeground(Color.WHITE); // Đổi màu chữ thành trắng
+        exitButton.setBackground(Color.RED); // Đổi màu nền thành đỏ
+        exitButton.setFocusPainted(false); // Xóa viền khi nhấn vào nút
         exitButton.setBounds(20, 540, 150, 50); // Điều chỉnh kích thước và vị trí
-        exitButton.addActionListener(e -> System.exit(0));
+
+        // Tạo viền bo tròn
+        exitButton.setBorder(new RoundedBorder(20)); // Bán kính bo tròn là 20
+
+        exitButton.addActionListener(e -> endGame(currentPlayer+":surrender:"+opponentPlayer,true));
         add(exitButton);
         updateBinsDisplay();
 
@@ -142,22 +156,26 @@ private  Client client;
                 if (timeRemaining <= 0) {
                     countdownTimer.stop();
                     gameTimer.stop();
-                    endGame();
+                    endGame(currentPlayer,false);
                 }
             }
         });
         countdownTimer.start();
     }
+    public void endGame(String surrenderResult,boolean isSurrendered) {
+        // Remove the current game interface and display the match result screen
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        frame.getContentPane().removeAll();
+if(isSurrendered) client.sendSurrender(surrenderResult);
+        // Create and add the MatchResult screen
+        frame.add(new MatchResult(currentPlayer, opponentPlayer, playerScore, opponentScore, client,surrenderResult,isSurrendered));
 
-
-    public void endGame() {
-        JOptionPane.showMessageDialog(this, "Game Over! Final Score: " + playerScore);
+        // Revalidate and repaint the frame to reflect changes
+        frame.revalidate();
+        frame.repaint();
+        client.sendMatchInfo(currentPlayer+','+opponentPlayer+','+playerScore+','+opponentScore);
     }
-
-
-
-
-    public void updateScore(boolean correct) {
+    public void updateScore1(boolean correct) {
         if (correct) {
             ++playerScore;
         } else {
@@ -166,6 +184,20 @@ private  Client client;
         client.sendScore(playerScore,this.currentPlayer,this.opponentPlayer);
         playerScoreLabel.setText(currentPlayer + ": " + playerScore);
     }
+    public void updateScore(boolean correct) {
+        if (correct) {
+            ++playerScore;
+            playerScoreLabel.setForeground(Color.GREEN); // Đổi màu thành xanh khi điểm tăng
+        } else {
+            --playerScore;
+            playerScoreLabel.setForeground(Color.RED); // Đổi màu thành đỏ khi điểm giảm
+        }
+        client.sendScore(playerScore, this.currentPlayer, this.opponentPlayer);
+        playerScoreLabel.setText(currentPlayer + ": " + playerScore);
+
+        // Đặt lại màu trắng sau 500ms
+        new Timer(1500, e -> playerScoreLabel.setForeground(Color.WHITE)).start();
+    }
 
 
     //     Hàm di chuyển thùng rác và thay đổi thứ tự
@@ -173,13 +205,11 @@ private  Client client;
         // Di chuyển sang trái hoặc phải
         bins[currentBinIndex].reset(); // Trở lại màu mặc định
 
-
         if (direction == -1) { // Sang trái
             currentBinIndex = (currentBinIndex - 1 + bins.length) % bins.length;
         } else if (direction == 1) { // Sang phải
             currentBinIndex = (currentBinIndex + 1) % bins.length;
         }
-
 
         // Đặt thùng hiện tại về giữa
         for (int i = 0; i < bins.length; i++) {
@@ -224,16 +254,55 @@ private  Client client;
     }
 
 
-    public void updateOpponentScore(String score) {
+    public void updateOpponentScore1(String score) {
         this.opponentScore =Integer.parseInt(score); // Cập nhật điểm đối thủ
         SwingUtilities.invokeLater(() -> {
             opponentScoreLabel.setText(opponentPlayer + ": " + this.opponentScore);
         });
     }
+    public void updateOpponentScore(String score) {
+        this.opponentScore = Integer.parseInt(score); // Cập nhật điểm đối thủ
+        SwingUtilities.invokeLater(() -> {
+            opponentScoreLabel.setText(opponentPlayer + ": " + this.opponentScore);
+
+            // Đổi màu đối thủ khi điểm thay đổi
+            if (Integer.parseInt(score) > opponentScore) {
+                opponentScoreLabel.setForeground(Color.GREEN); // Nếu điểm tăng
+            } else {
+                opponentScoreLabel.setForeground(Color.RED); // Nếu điểm giảm
+            }
+
+            // Đặt lại màu trắng sau 500ms
+            new Timer(1500, e -> opponentScoreLabel.setForeground(Color.WHITE)).start();
+        });
+    }
 
 
 
+    private static class RoundedBorder extends AbstractBorder {
+        private final int radius;
 
+        RoundedBorder(int radius) {
+            this.radius = radius;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(c.getForeground());
+            g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(this.radius + 1, this.radius + 1, this.radius + 1, this.radius + 1);
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c, Insets insets) {
+            insets.left = insets.right = insets.top = insets.bottom = this.radius;
+            return insets;
+        }
+    }
 
 
     public void createAndShowUI() {

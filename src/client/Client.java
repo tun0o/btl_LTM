@@ -2,6 +2,7 @@ package client;
 import client.GameUI.GameUI;
 import client.GameUI.HomeScreen;
 import client.loginGUI.src.main.Main;
+import  client.LeaderBoard_Rematch.MatchResult;
 import database.PlayerDAO;
 
 import java.io.*;
@@ -21,7 +22,7 @@ private  String username;
     private  String allPlayers;
     private HomeScreen homeScreen; // Reference to HomeScreen
     private GameUI gameUI;
-
+private  MatchResult matchResult;
     public Client(String serverAddress, int port) {
         try {
             socket = new Socket(serverAddress, port);
@@ -39,7 +40,7 @@ private  String username;
             while ((message = input.readLine()) != null) {
                 if (message.startsWith("ONLINE")) {
                     updateOnlinePlayers(message.substring(7));
-                } else if (message.startsWith("INVITE")) {
+                } else if (message.startsWith("1INVITE")) {
                     handleInvite(message.substring(7));
                 } else if (message.startsWith("SCORE")) {
                     updateOpponentScore(message.substring(6));
@@ -55,12 +56,20 @@ private  String username;
                     handleRandomInvite(message.substring(18));
                 }else if (message.startsWith("MATCH:")) {
                     handleMatch(message.substring(6));
+                } else if (message.startsWith("INVITEREMATCH")) {
+                    handleRematchInvite(message.substring(14));
+                }
+                else if (message.startsWith("OPPONENTSUR")) {
+                    handleOpponentSur(message.substring(12));
                 }
 
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    private void handleOpponentSur(String message){
+        if(gameUI!=null)        gameUI.endGame(message,true);
     }
     private void handleMatch(String message) {
         // Split the message to get currentPlayer and opponentPlayer usernames
@@ -71,7 +80,7 @@ private  String username;
             if (homeScreen != null) {
                 homeScreen.setVisible(false);
             }
-
+if(matchResult!=null) matchResult.setVisible(false);
             // Create and display the GameUI
 //            SwingUtilities.invokeLater(() -> {
 //                GameUI gameUI = new GameUI(currentPlayer, opponentPlayer, this);
@@ -88,7 +97,16 @@ private  String username;
         output.println("SENDSCORE:" + String.valueOf(score)+":"+player+":"+opponent);
     }
     public void sendInvite(String opponent) {
-        output.println("INVITE:" + opponent);
+        output.println("1INVITE:" + opponent);
+    }
+    public void sendMatchInfo(String matchInfo) {
+        output.println("MATCHINFO:" + matchInfo);
+    }
+    public void sendSurrender(String surrenderResult) {
+        output.println("SURRENDER:" + surrenderResult);
+    }
+    public void sendRematch(String opponent) {
+        output.println("REMATCH:" + opponent);
     }
     public void accept(String username) {
         output.println("ACCEPT:" + username);
@@ -126,13 +144,23 @@ private  String username;
         this.allPlayers = players;// Cập nhật danh sách online trên giao diện
         System.out.println("All players: " + allPlayers);
     }
+    public String getAllPlayers() {
+        return allPlayers;
+    }
     private void handleRandomInvite(String inviter) {
         // Invoke the dialog on the HomeScreen
         homeScreen.showMatchInviteDialog("random",inviter);
     }
+    private void handleRematchInvite(String inviter) {
+        // Invoke the dialog on the HomeScreen
+//        SwingUtilities.invokeLater(() -> {
+            // Giả sử bạn có một tham chiếu đến đối tượng MatchResult đang hiển thị
+            matchResult.showRematchConfirmation();
+//        });
+    }
     private void handleInvite(String inviter) {
         // Invoke the dialog on the HomeScreen
-        homeScreen.showMatchInviteDialog("random",inviter);
+        homeScreen.showMatchInviteDialog("invite",inviter);
     }
 
     private void updateOpponentScore(String score) {
@@ -142,7 +170,7 @@ private  String username;
         }
     }
 
-    private void handleLoginSuccess() {
+    public void handleLoginSuccess() {
         SwingUtilities.invokeLater(() -> {
             if (loginGUI != null) {
                 loginGUI.setVisible(false); // Ẩn giao diện đăng nhập
@@ -160,17 +188,23 @@ private  String username;
     public void setHomeScreen(HomeScreen homeScreen) {
         this.homeScreen = homeScreen;
     }
+    public void setMatchResult(MatchResult matchResult) {
+        this.matchResult = matchResult ;
+    }
 
     public Main getLoginGUI() {
         return loginGUI;
     }
 
     public static void main(String[] args) throws SQLException {
-        List<Player> players = new PlayerDAO().getAllPlayers();
+//        List<Player> players = new PlayerDAO().getAllPlayers();
 
         // Tạo giao diện đăng nhập trước khi tạo Client
         Main loginGUI = new Main();
-        Client client = new Client("localhost", 12345); // Tạo client
+        String serverAdress = "26.130.249.14";
+//        "192.168.1.3"
+
+        Client client = new Client(serverAdress, 12345); // Tạo client
         client.setLoginGUI(loginGUI); // Gán giao diện đăng nhập cho client
 
         // Hiển thị giao diện đăng nhập
