@@ -80,7 +80,10 @@ private  MatchResult matchResult;
             if (homeScreen != null) {
                 homeScreen.setVisible(false);
             }
-if(matchResult!=null) matchResult.setVisible(false);
+if(matchResult!=null) {
+    matchResult.closeMatchResult();
+    matchResult.setVisible(false);
+}
             // Create and display the GameUI
 //            SwingUtilities.invokeLater(() -> {
 //                GameUI gameUI = new GameUI(currentPlayer, opponentPlayer, this);
