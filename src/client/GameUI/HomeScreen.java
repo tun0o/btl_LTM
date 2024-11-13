@@ -173,29 +173,26 @@ public class HomeScreen extends JFrame {
 
     public void showMatchInviteDialog(String type, String inviter) {
         int response = JOptionPane.NO_OPTION;
-        if (type.equals("random")) {
-            response = JOptionPane.showOptionDialog(
-                    this,
-                    " Tìm thấy trận.",
-                    "Match Found",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new Object[]{"Chơi ngay", "Từ chối"},
-                    "Chơi ngay"
-            );
-        }else{
-            response = JOptionPane.showOptionDialog(
-                    this,
-                    inviter + " mời bạn chơi.",
-                    "Match Found",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new Object[]{"Chơi ngay", "Từ chối"},
-                    "Chơi ngay"
-            );
+        String message;
+
+        // Kiểm tra loại lời mời và chuẩn bị thông báo tương ứng
+        if ("random".equals(type)) {
+            message = "Tìm thấy trận.";
+        } else {
+            message = inviter + " mời bạn chơi.";
         }
+
+        // Hiển thị hộp thoại yêu cầu người dùng chọn
+        response = JOptionPane.showOptionDialog(
+                this,
+                message,
+                "Match Found",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new Object[]{"Chơi ngay", "Từ chối"},
+                "Chơi ngay"
+        );
 
         if (response == JOptionPane.YES_OPTION) {
             client.accept(this.username);  // Example method to send acceptance
@@ -313,34 +310,51 @@ public class HomeScreen extends JFrame {
         JLabel headerName = new JLabel("Người chơi");
         headerName.setFont(new Font("Arial", Font.BOLD, 16));
         headerName.setForeground(Color.BLACK);
-        headerName.setHorizontalAlignment(SwingConstants.CENTER); // Center the text
+        headerName.setHorizontalAlignment(SwingConstants.CENTER);
         playerListPanel.add(headerName, gbc);
 
         gbc.gridx = 1;
         JLabel headerStatus = new JLabel("Trạng thái");
         headerStatus.setFont(new Font("Arial", Font.BOLD, 16));
         headerStatus.setForeground(Color.BLACK);
-        headerStatus.setHorizontalAlignment(SwingConstants.CENTER); // Center the text
+        headerStatus.setHorizontalAlignment(SwingConstants.CENTER);
         playerListPanel.add(headerStatus, gbc);
 
         gbc.gridx = 2;
         JLabel headerAction = new JLabel("");
         playerListPanel.add(headerAction, gbc);
 
-        // Parse onlinePlayers
+        // Parse onlinePlayers into a set for easy checking
         Set<String> onlineSet = new HashSet<>(Arrays.asList(onlinePlayers.split(",")));
 
-        // Parse allPlayers
+        // Parse allPlayers and separate into online and offline lists
+        List<String> onlinePlayersList = new ArrayList<>();
+        List<String> offlinePlayersList = new ArrayList<>();
         String[] allPlayersArray = allPlayers.split(";");
-        int row = 1;
 
         for (String playerData : allPlayersArray) {
             String[] playerInfo = playerData.split(":");
             if (playerInfo.length < 4) continue; // Ensure there is enough info
 
             String playerUsername = playerInfo[0];
-            if (playerUsername.equals(username)) continue;
+            if (playerUsername.equals(username)) continue; // Skip the current user
 
+            if (onlineSet.contains(playerUsername)) {
+                onlinePlayersList.add(playerData); // Add to online players list
+            } else {
+                offlinePlayersList.add(playerData); // Add to offline players list
+            }
+        }
+
+        // Combine online and offline lists with online players shown first
+        List<String> sortedPlayersList = new ArrayList<>();
+        sortedPlayersList.addAll(onlinePlayersList);
+        sortedPlayersList.addAll(offlinePlayersList);
+
+        int row = 1;
+        for (String playerData : sortedPlayersList) {
+            String[] playerInfo = playerData.split(":");
+            String playerUsername = playerInfo[0];
             String status = onlineSet.contains(playerUsername) ? "Online" : "Offline";
 
             // Name Column - Centered
@@ -348,31 +362,27 @@ public class HomeScreen extends JFrame {
             gbc.gridy = row;
             JLabel nameLabel = new JLabel(playerUsername);
             nameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            nameLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center the text
+            nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
             playerListPanel.add(nameLabel, gbc);
 
             // Status Column with color - Centered
             gbc.gridx = 1;
             JLabel statusLabel = new JLabel(status);
             statusLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            statusLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center the text
-            if ("Online".equals(status)) {
-                statusLabel.setForeground(Color.GREEN);  // Green for online
-            } else {
-                statusLabel.setForeground(Color.RED);  // Red for offline
-            }
+            statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            statusLabel.setForeground("Online".equals(status) ? Color.GREEN : Color.RED);
             playerListPanel.add(statusLabel, gbc);
 
             // Action Column (Invite Button)
             gbc.gridx = 2;
-            if (status.equals("Online")) {
+            if ("Online".equals(status)) {
                 JButton inviteButton = new JButton("Mời");
                 inviteButton.setFont(new Font("Arial", Font.PLAIN, 12));
                 inviteButton.setPreferredSize(new Dimension(60, 30));
                 inviteButton.addActionListener(e -> invitePlayer(playerUsername));
                 playerListPanel.add(inviteButton, gbc);
             } else {
-                playerListPanel.add(new JLabel(""), gbc);  // No "Invite" button for offline players
+                playerListPanel.add(new JLabel(""), gbc); // No "Invite" button for offline players
             }
             row++;
         }
@@ -380,6 +390,7 @@ public class HomeScreen extends JFrame {
         playerListPanel.revalidate();
         playerListPanel.repaint();
     }
+
 
 
     private JButton createActionButton(String status, String playerUsername) {

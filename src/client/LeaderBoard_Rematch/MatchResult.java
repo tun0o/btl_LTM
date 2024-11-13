@@ -163,7 +163,15 @@ public class MatchResult extends JPanel {
         frame.dispose();
         client.handleLoginSuccess();
     }
-
+public void closeMatchResult(){
+    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+    Container container = frame.getContentPane();
+    container.removeAll();
+    container.setLayout(new CardLayout());
+    container.revalidate();
+    container.repaint();
+    frame.dispose();
+}
     public void createAndShowUI() {
         JFrame frame = new JFrame("Match Result");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

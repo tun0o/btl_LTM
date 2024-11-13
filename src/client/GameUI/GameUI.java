@@ -18,7 +18,7 @@ public class GameUI extends JPanel {
     private JLabel playerScoreLabel, opponentScoreLabel, timeLabel;
     private int playerScore = 0;
     private int opponentScore = 0;
-    private int timeRemaining = 3;
+    private int timeRemaining = 60;
     private TrashBin[] bins = new TrashBin[4];
     public int currentBinIndex = 1; // Thùng ở giữa (nhựa) bắt đầu là chỉ số 1
     private Trash trash;
